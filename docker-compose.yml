@@ -17,6 +17,10 @@ services:
       context: .
       dockerfile: ./docker/webscraper/Dockerfile
     command: scrapy crawl willhaben
+    environment:
+      MYSQL_DATABASE: "database_sophie"
+      MYSQL_USER: "${MYSQL_USER}" # from env file
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # from env file
     depends_on:
       - db
     volumes:

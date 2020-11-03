@@ -29,7 +29,7 @@ class WillhabenSpider(scrapy.Spider):
     START_URL = 'https://www.willhaben.at/iad/immobilien/eigentumswohnung/steiermark/graz/'
     ITEM_URL_REGEX = r"\"url\":\"(\/iad\/immobilien\/d\/eigentumswohnung\/steiermark\/graz\/[a-z,A-Z,0-9,-]+\/)\""
     ITEM_IMG_REGEX = r'"referenceImageUrl":"(https:\/\/cache.willhaben.at[-a-zA-Z0-9@:%._\+~#=/]+)"'
-    BASE_URL = "https://willhaben.at"
+    BASE_URL = "https://www.willhaben.at"
     name = 'willhaben'
     allowed_domains = ['willhaben.at']
     start_urls = [
@@ -56,12 +56,9 @@ class WillhabenSpider(scrapy.Spider):
             logging.error("Found only {} items on page {}".format(
                 item_count, response.url))
 
-        # for relative_item_url in relative_item_urls:
-        #     full_item_url = self.BASE_URL + relative_item_url
-        #     # print(full_item_url)
-        #     yield scrapy.Request(full_item_url, self.parse_item)
-        full_item_url = self.BASE_URL + relative_item_urls[0]
-        yield scrapy.Request(full_item_url, self.parse_item)
+        for relative_item_url in relative_item_urls:
+            full_item_url = self.BASE_URL + relative_item_url
+            yield scrapy.Request(full_item_url, self.parse_item)
 
         # get the next page of the list
         soup = BeautifulSoup(response.text, 'lxml')
@@ -102,7 +99,12 @@ class WillhabenSpider(scrapy.Spider):
             cleaned_price_text = price_text.replace('.', '')
             match = re.search(r'\d+', cleaned_price_text)
             if match:
-                item['price'] = match[0]  # The entire match
+                price_string = match[0]  # The entire match
+                try:
+                    item['price'] = int(price_string)
+                except ValueError:
+                    logging.error("Could not convert price to int at page " +
+                                  item['url'])
             else:
                 logging.error("price parsing failed on page " + item['url'])
         else:
@@ -115,11 +117,36 @@ class WillhabenSpider(scrapy.Spider):
             size_text = size_tag.get_text()
             match = re.search(r'\d+', size_text)
             if match:
-                item['size'] = match[0]  # The entire match
+                size_string = match[0]  # The entire match
+                try:
+                    item['size'] = int(size_string)
+                except ValueError:
+                    logging.error("Could not convert size to int at page " +
+                                  item['url'])
             else:
                 logging.error("size parsing failed on page " + item['url'])
         else:
             logging.error("size element not found on page " + item['url'])
+
+        # room_count
+        room_count_tag = soup.find(
+            'div', attrs={"data-testid": "ad-detail-teaser-attribute-1"})
+        if room_count_tag:
+            room_count_text = room_count_tag.get_text()
+            match = re.search(r'\d', room_count_text)
+            if match:
+                room_count_string = match[0]  # The entire match
+                try:
+                    item['room_count'] = int(room_count_string)
+                except ValueError:
+                    logging.error("Could not convert room_count to int at page " +
+                                  item['url'])
+            else:
+                logging.error(
+                    "room_count parsing failed on page " + item['url'])
+        else:
+            logging.error(
+                "room_count element not found on page " + item['url'])
 
         # address, postal_code and district
         location_address_tag = soup.find(
@@ -181,29 +208,8 @@ class WillhabenSpider(scrapy.Spider):
             logging.error(
                 "commission_fee element not found on page " + item['url'])
 
-        # # ad_info_desc     and     ad_info_values
-        # attr_groups = soup.findAll(
-        #     'div', attrs={"data-testid": "attribute-group"})
-        # ad_info_descriptions = []
-        # ad_info_values = []
-        # for attr_group in attr_groups:
-        #     attributes = attr_group.findAll(
-        #         'li', attrs={"data-testid": "attribute"})
-        #     for attr in attributes:
-        #         ad_info_desc = attr.find(
-        #             'div', attrs={"data-testid": "attribute-name"})
-        #         ad_info_value = attr.find(
-        #             'div', attrs={"data-testid": "attribute-value"})
-        #         if ad_info_desc:
-        #             ad_info_descriptions.append(ad_info_desc.get_text())
-        #             if ad_info_value:
-        #                 ad_info_values.append(
-        #                     ad_info_value.get_text().strip())
-        #             else:
-        #                 ad_info_values.append('')
-
-        # item['ad_info_desc'] = ad_info_descriptions
-        # item['ad_info_values'] = ad_info_values
+        # price_per_m2
+        item.calc_price_per_m2()
 
         # futher item processing is done in the item pipeline
         yield item
