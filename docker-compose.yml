@@ -1,0 +1,26 @@
+version: "3.4"
+
+services:
+  db:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "database_sophie"
+      MYSQL_USER: "${MYSQL_USER}" # from env file
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # from env file
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # from env file
+  webscraper:
+    build:
+      context: .
+      dockerfile: ./docker/webscraper/Dockerfile
+    command: scrapy crawl willhaben
+    depends_on:
+      - db
+    volumes:
+      - .:/src
+
+volumes:
+  db_data: {}
