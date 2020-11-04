@@ -73,8 +73,8 @@ class DatabaseManager():
             room_count INTEGER,
             price_per_m2 FLOAT,
             discovery_date DATE,
-            title VARCHAR(250) COLLATE utf8_bin,
-            url VARCHAR(250) COLLATE utf8_bin,
+            title TEXT COLLATE utf8_bin,
+            url TEXT COLLATE utf8_bin,
             edit_date VARCHAR(100) COLLATE utf8_bin,
             address VARCHAR(100) COLLATE utf8_bin);""".format(table_name)
             self.cursor.execute(sql_command)

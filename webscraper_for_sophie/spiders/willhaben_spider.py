@@ -65,7 +65,7 @@ class WillhabenSpider(scrapy.Spider):
         pagination_btn = soup.find(
             'a', attrs={"data-testid": "pagination-top-next-button"})
         next_page_url = self.BASE_URL + pagination_btn['href']
-        # yield scrapy.Request(next_page_url, self.parse)
+        yield scrapy.Request(next_page_url, self.parse)
         # TODO error handling
 
     def parse_item(self, response):
@@ -95,18 +95,8 @@ class WillhabenSpider(scrapy.Spider):
         price_tag = soup.find(
             'span', attrs={"data-testid": "contact-box-price-box-price-value"})
         if price_tag:
-            price_text = price_tag.get_text()
-            cleaned_price_text = price_text.replace('.', '')
-            match = re.search(r'\d+', cleaned_price_text)
-            if match:
-                price_string = match[0]  # The entire match
-                try:
-                    item['price'] = int(price_string)
-                except ValueError:
-                    logging.error("Could not convert price to int at page " +
-                                  item['url'])
-            else:
-                logging.error("price parsing failed on page " + item['url'])
+            visible_price_text = price_tag.get_text()
+            item.parse_price(visible_price_text)
         else:
             logging.error("price element not found on page " + item['url'])
 
@@ -114,17 +104,8 @@ class WillhabenSpider(scrapy.Spider):
         size_tag = soup.find(
             'div', attrs={"data-testid": "ad-detail-teaser-attribute-0"})
         if size_tag:
-            size_text = size_tag.get_text()
-            match = re.search(r'\d+', size_text)
-            if match:
-                size_string = match[0]  # The entire match
-                try:
-                    item['size'] = int(size_string)
-                except ValueError:
-                    logging.error("Could not convert size to int at page " +
-                                  item['url'])
-            else:
-                logging.error("size parsing failed on page " + item['url'])
+            visible_size_text = size_tag.get_text()
+            item.parse_size(visible_size_text)
         else:
             logging.error("size element not found on page " + item['url'])
 
@@ -133,20 +114,26 @@ class WillhabenSpider(scrapy.Spider):
             'div', attrs={"data-testid": "ad-detail-teaser-attribute-1"})
         if room_count_tag:
             room_count_text = room_count_tag.get_text()
-            match = re.search(r'\d', room_count_text)
-            if match:
-                room_count_string = match[0]  # The entire match
-                try:
-                    item['room_count'] = int(room_count_string)
-                except ValueError:
-                    logging.error("Could not convert room_count to int at page " +
-                                  item['url'])
-            else:
-                logging.error(
-                    "room_count parsing failed on page " + item['url'])
+            item.parse_room_count(room_count_text)
         else:
             logging.error(
                 "room_count element not found on page " + item['url'])
+
+        # alternative size and room count parsing (from attributes)
+        attribute_tags = soup.findAll(
+            'li', attrs={"data-testid": "attribute-item"})
+        if attribute_tags:
+            for attribute_tag in attribute_tags:
+                attribute_text = attribute_tag.get_text()
+                # parse size again if zero
+                if item['size'] == 0:
+                    item.parse_size_2(attribute_text)
+                # parse room_count again if zero
+                if item['room_count'] == 0:
+                    item.parse_room_count_2(attribute_text)
+        else:
+            logging.error(
+                "attribute elements not found on page " + item['url'])
 
         # address, postal_code and district
         location_address_tag = soup.find(
