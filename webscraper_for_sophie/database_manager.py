@@ -9,13 +9,11 @@ from webscraper_for_sophie.items import CondoItem
 
 
 env = environs.Env()
-
-user = env("MYSQL_USER")
-password = env("MYSQL_PASSWORD")
-database = env("MYSQL_DATABASE")
-host = 'db'     # name of the docker container
-#table_name = 'condos_graz'
-table_name = 'condos_gu'
+USER = env("MYSQL_USER")
+PASSWORD = env("MYSQL_PASSWORD")
+DATABASE = env("MYSQL_DATABASE")
+TABLENAME = env("MYSQL_TABLENAME")
+HOST = 'db'     # name of the docker container
 
 
 class DatabaseManager():
@@ -26,10 +24,10 @@ class DatabaseManager():
     def connect(self):
         """ Connect to the database """
         try:
-            self.connection = mysql.connector.connect(host=host,
-                                                      database=database,
-                                                      user=user,
-                                                      password=password)
+            self.connection = mysql.connector.connect(host=HOST,
+                                                      database=DATABASE,
+                                                      user=USER,
+                                                      password=PASSWORD)
             self.cursor = self.connection.cursor()
             logging.debug("Database connection opened")
         except mysql.connector.Error as err:
@@ -55,7 +53,7 @@ class DatabaseManager():
 
     def prep_table(self):
         """ create a new table if the provided table name does not exist. """
-        sql_command = "SHOW TABLES LIKE '{0}'".format(table_name)
+        sql_command = "SHOW TABLES LIKE '{0}'".format(TABLENAME)
         self.cursor.execute(sql_command)
         result = self.cursor.fetchone()  # fetch will return a python tuple
         if result is None:
@@ -77,7 +75,7 @@ class DatabaseManager():
             title TEXT COLLATE utf8_bin,
             url TEXT COLLATE utf8_bin,
             edit_date VARCHAR(100) COLLATE utf8_bin,
-            address VARCHAR(100) COLLATE utf8_bin);""".format(table_name)
+            address VARCHAR(100) COLLATE utf8_bin);""".format(TABLENAME)
             self.cursor.execute(sql_command)
             self.connection.commit()
             logging.debug("New database table has been created")
@@ -97,7 +95,7 @@ class DatabaseManager():
                             discovery_date, title, url, edit_date, address)
 						VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
                         %s, %s, %s, %s);
-						""".format(table_name)
+						""".format(TABLENAME)
 
         insert_tuple = (None, item['willhaben_code'], item['postal_code'],
                         item['district'], item['price'], item['commission_fee'],

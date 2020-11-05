@@ -8,9 +8,9 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: "database_sophie"
+      MYSQL_DATABASE: ${MYSQL_DATABASE} # from env file
       MYSQL_USER: "${MYSQL_USER}" # from env file
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # from env file
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD} # from env file
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # from env file
   webscraper:
     build:
@@ -18,7 +18,8 @@ services:
       dockerfile: ./docker/webscraper/Dockerfile
     command: scrapy crawl willhaben
     environment:
-      MYSQL_DATABASE: "database_sophie"
+      MYSQL_DATABASE: ${MYSQL_DATABASE} # from env file
+      MYSQL_TABLENAME: ${MYSQL_TABLENAME} # from env file
       MYSQL_USER: "${MYSQL_USER}" # from env file
       MYSQL_PASSWORD: ${MYSQL_PASSWORD} # from env file
     depends_on:
@@ -27,4 +28,4 @@ services:
       - .:/src
 
 volumes:
-  db_data: {}
+  db_data: {} # make db data persistent
