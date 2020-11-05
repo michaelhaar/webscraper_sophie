@@ -1,5 +1,6 @@
 # import default packages
 import logging
+import time
 # import installed packages
 import environs
 import mysql.connector
@@ -15,6 +16,12 @@ DATABASE = env("MYSQL_DATABASE")
 TABLENAME = env("MYSQL_TABLENAME")
 HOST = 'db'     # name of the docker container
 
+# Settings for connection error handling
+NUM_ATTEMPTS = 30
+DELAY_BTW_ATTEMPTS = 1     # in seconds
+RETRY_MSG = ("Waiting for MySQL container to start gracefully " +
+             "(Attempt {} of {}) failed")
+
 
 class DatabaseManager():
     """
@@ -23,21 +30,27 @@ class DatabaseManager():
 
     def connect(self):
         """ Connect to the database """
-        try:
-            self.connection = mysql.connector.connect(host=HOST,
-                                                      database=DATABASE,
-                                                      user=USER,
-                                                      password=PASSWORD)
-            self.cursor = self.connection.cursor()
-            logging.debug("Database connection opened")
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                logging.error(
-                    "Something is wrong with your user name or password")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                logging.error("Database does not exist")
-            else:
-                logging.error(err)
+        for attempt_no in range(1, NUM_ATTEMPTS+1):
+            try:
+                self.connection = mysql.connector.connect(host=HOST,
+                                                          database=DATABASE,
+                                                          user=USER,
+                                                          password=PASSWORD)
+                self.cursor = self.connection.cursor()
+                logging.debug("Database connection opened")
+                return
+            except mysql.connector.Error as err:
+                logging.debug(RETRY_MSG.format(attempt_no, NUM_ATTEMPTS))
+                if attempt_no < NUM_ATTEMPTS:
+                    time.sleep(DELAY_BTW_ATTEMPTS)
+                else:
+                    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                        logging.error(
+                            "Something is wrong with your user name or password")
+                    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                        logging.error("Database does not exist")
+                    else:
+                        logging.error(err)
 
     def close(self):
         """ Close the database connection """

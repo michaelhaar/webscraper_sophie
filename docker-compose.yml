@@ -10,7 +10,7 @@ services:
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE} # from env file
       MYSQL_USER: "${MYSQL_USER}" # from env file
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD} # from env file
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD} # from env file
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # from env file
   webscraper:
     build:
