@@ -14,7 +14,8 @@ user = env("MYSQL_USER")
 password = env("MYSQL_PASSWORD")
 database = env("MYSQL_DATABASE")
 host = 'db'     # name of the docker container
-table_name = 'condos'
+#table_name = 'condos_graz'
+table_name = 'condos_gu'
 
 
 class DatabaseManager():
