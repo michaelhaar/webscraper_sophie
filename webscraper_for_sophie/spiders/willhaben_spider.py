@@ -98,7 +98,7 @@ class WillhabenSpider(scrapy.Spider):
 
         # price
         price_tag = soup.find(
-            'span', attrs={"data-testid": "contact-box-price-box-price-value"})
+            'span', attrs={"data-testid": "contact-box-price-box-price-value-0"})
         if price_tag:
             visible_price_text = price_tag.get_text()
             item.parse_price(visible_price_text)
