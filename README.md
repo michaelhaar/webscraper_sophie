@@ -1,3 +1,5 @@
+> Note: For an enhanced version of this tool, please check out the [Willhaben RealEstateScraper](https://apify.com/michaelhaar/willhaben-realestatescraper)
+
 # Webscraper for Sophie :ant:
 
 This is a small webscraper application, which I wrote to do a market research
