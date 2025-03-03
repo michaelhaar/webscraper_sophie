@@ -1,4 +1,4 @@
-> Note: For an enhanced version of this tool, please check out the [Willhaben RealEstateScraper](https://apify.com/michaelhaar/willhaben-realestatescraper)
+> Note: For an enhanced version of this tool, please check out the [Immobilien Suchmaschine](https://apify.com/michaelhaar/immobilien-suchmaschine)
 
 # Webscraper for Sophie :ant:
 
