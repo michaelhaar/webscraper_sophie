@@ -1,4 +1,4 @@
-> Note: For an enhanced version of this tool, please check out the [Immobilien Suchmaschine](https://apify.com/michaelhaar/immobilien-suchmaschine)
+> Note: This code is quite old and I don't recommend using it. Please check out the [Immobilien Suchmaschine](https://apify.com/michaelhaar/immobilien-suchmaschine)
 
 # Webscraper for Sophie :ant:
 
